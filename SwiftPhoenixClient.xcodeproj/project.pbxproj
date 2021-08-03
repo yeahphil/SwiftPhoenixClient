@@ -42,6 +42,7 @@
 		12EF620825524B6800A6EE9B /* DefaultSerializerSpec.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12EF620325524B6800A6EE9B /* DefaultSerializerSpec.swift */; };
 		12EF620E25524EEF00A6EE9B /* MockableClass.generated.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12EF620C25524EEF00A6EE9B /* MockableClass.generated.swift */; };
 		12EF620F25524EEF00A6EE9B /* MockableProtocol.generated.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12EF620D25524EEF00A6EE9B /* MockableProtocol.generated.swift */; };
+		4AE3BDF926B8E17000A05681 /* Channel+Combine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4AE3BDF726B8E0FB00A05681 /* Channel+Combine.swift */; };
 		631D187B259CE1D7005FAC0E /* RxSwiftPhoenixClient.h in Headers */ = {isa = PBXBuildFile; fileRef = 128143D6254113BD008615A7 /* RxSwiftPhoenixClient.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		631D187F259CE1D7005FAC0E /* SwiftPhoenixClient.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1281439225410D52008615A7 /* SwiftPhoenixClient.framework */; };
 		631D1882259CE1D7005FAC0E /* SwiftPhoenixClient.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 1281439225410D52008615A7 /* SwiftPhoenixClient.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
@@ -186,6 +187,7 @@
 		12EF620325524B6800A6EE9B /* DefaultSerializerSpec.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DefaultSerializerSpec.swift; sourceTree = "<group>"; };
 		12EF620C25524EEF00A6EE9B /* MockableClass.generated.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MockableClass.generated.swift; sourceTree = "<group>"; };
 		12EF620D25524EEF00A6EE9B /* MockableProtocol.generated.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MockableProtocol.generated.swift; sourceTree = "<group>"; };
+		4AE3BDF726B8E0FB00A05681 /* Channel+Combine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Channel+Combine.swift"; sourceTree = "<group>"; };
 		631D1886259CE1D7005FAC0E /* StarscreamSwiftPhoenixClient.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = StarscreamSwiftPhoenixClient.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		631D1892259CE2A8005FAC0E /* StarscreamTransport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StarscreamTransport.swift; sourceTree = "<group>"; };
 		635669C3261631DC0068B665 /* URLSessionTransportSpec.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = URLSessionTransportSpec.swift; sourceTree = "<group>"; };
@@ -318,6 +320,7 @@
 				12922E1F2543B10B0034B257 /* Socket.swift */,
 				12991E00254C3F1300BB8650 /* TimeoutTimer.swift */,
 				12922E212543B37B0034B257 /* PhoenixTransport.swift */,
+				4AE3BDF726B8E0FB00A05681 /* Channel+Combine.swift */,
 			);
 			path = SwiftPhoenixClient;
 			sourceTree = "<group>";
@@ -664,6 +667,7 @@
 				12991E09254C3F5B00BB8650 /* Presence.swift in Sources */,
 				12991E01254C3F1300BB8650 /* TimeoutTimer.swift in Sources */,
 				12991E07254C3F4B00BB8650 /* Message.swift in Sources */,
+				4AE3BDF926B8E17000A05681 /* Channel+Combine.swift in Sources */,
 				12991DFD254C3ED300BB8650 /* Delegated.swift in Sources */,
 				12991DFF254C3EF900BB8650 /* HeartbeatTimer.swift in Sources */,
 				12991E03254C3F2300BB8650 /* Push.swift in Sources */,
