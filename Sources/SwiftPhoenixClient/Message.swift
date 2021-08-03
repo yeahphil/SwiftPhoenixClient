@@ -75,3 +75,9 @@ public class Message {
     }
   }
 }
+
+extension Message: CustomStringConvertible {
+    public var description: String {
+        "<Message topic:\(topic) event:\(event) payload:\(payload) ref:\(ref) joinRef:\(joinRef)>"
+    }
+}
