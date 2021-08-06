@@ -20,8 +20,8 @@ extension Channel {
     /// Emits completion when the channel closes
     /// And, emits an error if the channel receives an error. This might not be correct -- it might be correct to match the Rx extension, which does no error handling,
     /// and require error handling on the socket rather than the channel -- this version will stop emitting events if the socket errors, even if it reconnects and would have continued.
-    public func publisher(on event: String) -> AnyPublisher<Message, Error> {
-        let subject = PassthroughSubject<Message, Error>()
+    public func publisher(on event: String) -> AnyPublisher<Message, Never> {
+        let subject = PassthroughSubject<Message, Never>()
         
         let refs = [
             on(event) {
@@ -29,9 +29,6 @@ extension Channel {
             },
             onClose { message in
                 subject.send(completion: .finished)
-            },
-            onError { message in
-                subject.send(completion: .failure(Errors.unknown))
             }
         ]
         
