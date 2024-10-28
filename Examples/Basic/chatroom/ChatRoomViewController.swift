@@ -150,10 +150,8 @@ class ChatRoomViewController: UIViewController {
         // Setup the Channel to receive and send messages
         let channel = socket.channel(topic, params: ["status": "joining"])
         channel.delegateOn("shout", to: self) { (self, message) in
-            let payload = message.payload.asJson()
-            
-            let data = payload.data(using: .utf8)!
-            let shout = try? self.jsonDecoder.decode(Shout.self, from: data)
+            let shout = try? self.jsonDecoder.decode(Shout.self,
+                                                     from: message.payload)
             
             self.shouts.append(shout!)
             
@@ -165,15 +163,15 @@ class ChatRoomViewController: UIViewController {
             }
         }
         
-        // Now connect the socket and join the channel
+        // Now connect the socSerket and join the channel
         self.lobbyChannel = channel
         self.lobbyChannel?
             .join()
-            .delegateReceive("ok", to: self, callback: { (self, _) in
-                print("CHANNEL: rooms:lobby joined")
+            .delegateReceive("ok", to: self, callback: { (self, message) in
+                print("CHANNEL: rooms:lobby joined. status <\(message.status ?? "null")>")
             })
             .delegateReceive("error", to: self, callback: { (self, message) in
-                print("CHANNEL: rooms:lobby failed to join. \(message.payload)")
+                print("CHANNEL: rooms:lobby failed to join. payload <\(message.payloadString ?? "null")>  status <\(message.status ?? "null")> ")
             })
         
         self.socket.connect()

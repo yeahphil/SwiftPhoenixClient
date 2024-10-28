@@ -83,6 +83,10 @@ public class Socket: PhoenixTransportDelegate {
     /// Serializer used to encode/decode between the clienet and the server.
     public var serializer: Serializer = PhoenixSerializer()
     
+    /// Customize how payloads are encoded before being sent to the server
+    public var encoder: PayloadEncoder = PhoenixPayloadEncoder()
+    
+    
     /// Override to provide custom encoding of data before writing to the socket
     public var encode: (Any) -> Data = Defaults.encode
     
@@ -590,19 +594,24 @@ public class Socket: PhoenixTransportDelegate {
     /// - parameter joinRef: Optional. Defaults to nil
     internal func push(topic: String,
                        event: String,
-                       payload: Payload,
+                       payload: Data,
                        ref: String? = nil,
                        joinRef: String? = nil) {
         
         let callback: (() throws -> ()) = { [weak self] in
             guard let self else { return }
-            let body: [Any?] = [joinRef, ref, topic, event, payload]
-            let data = self.encode(body)
             
-            let msg = String(data: data, encoding: String.Encoding.utf8) ?? ""
-            
-            self.logItems("push", "Sending \(msg)" )
-            self.connection?.send(string: msg)
+            let message = Message.message(
+                joinRef: joinRef,
+                ref: ref,
+                topic: topic,
+                event: event,
+                payload: payload
+            )
+
+            let text = try serializer.encode(message: message)
+            self.logItems("push", "Sending \(text)" )
+            self.connection?.send(string: text)
         }
         
         /// If the socket is connected, then execute the callback immediately.
@@ -801,7 +810,7 @@ public class Socket: PhoenixTransportDelegate {
         self.pendingHeartbeatRef = self.makeRef()
         self.push(topic: "phoenix",
                   event: ChannelEvent.heartbeat,
-                  payload: [:],
+                  payload: Defaults.emptyPayload,
                   ref: self.pendingHeartbeatRef)
     }
     

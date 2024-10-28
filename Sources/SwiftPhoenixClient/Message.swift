@@ -32,6 +32,7 @@
 ///
 public struct Message {
         
+    // MARK: -- Core Structure --
     /// The unique string ref when joining
     let joinRef: String?
     
@@ -45,26 +46,38 @@ public struct Message {
     /// The string event name, for example "phx_join"
     let event: String
     
-    /// The reply status as a string
-    let status: String?
-    
     /// The payload of the message to send or that was received.`
-    public let payload: MessagePayload
+    public let payload: Data
     
+    
+    // MARK: -- Helpers --
+    /// The reply status as a string
+    public let status: String?
+    
+    /// If true, the message will be pushed out as binary
+    let pushAsBinary: Bool
+    
+    /// Attempts to render the paylod as a readable string.
+    public var payloadString: String? {
+        String(data: payload, encoding: .utf8)
+    }
+    
+    // MARK: -- Init Types --
     static func reply(
         joinRef: String?,
         ref: String?,
         topic: String,
         status: String,
-        payload: MessagePayload
+        payload: Data
     ) -> Message {
         return Message(
             joinRef: joinRef,
             ref: ref,
             topic: topic,
             event: ChannelEvent.reply,
+            payload: payload,
             status: status,
-            payload: payload
+            pushAsBinary: false
         )
     }
     
@@ -73,30 +86,33 @@ public struct Message {
         ref: String?,
         topic: String,
         event: String,
-        payload: MessagePayload
+        payload: Data,
+        pushAsBinary: Bool = false
     ) -> Message {
         return Message(
             joinRef: joinRef,
             ref: ref,
             topic: topic,
             event: event,
+            payload: payload,
             status: nil,
-            payload: payload
+            pushAsBinary: pushAsBinary
         )
     }
     
     static func broadcast(
         topic: String,
         event: String,
-        payload: MessagePayload
+        payload: Data
     ) -> Message {
         return Message(
             joinRef: nil,
             ref: nil,
             topic: topic,
             event: event,
+            payload: payload,
             status: nil,
-            payload: payload
+            pushAsBinary: false
         )
     }
 }

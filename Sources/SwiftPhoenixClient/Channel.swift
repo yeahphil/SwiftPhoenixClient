@@ -65,7 +65,10 @@ public class Channel {
     
     /// The params sent when joining the channel
     public var params: Payload {
-        didSet { self.joinPush.payload = params }
+        didSet {
+            let data = try! self.socket?.encoder.encode(params)
+            self.joinPush.payload = data!
+        }
     }
     
     /// The Socket that the channel belongs to
@@ -103,7 +106,11 @@ public class Channel {
     /// - parameter topic: Topic of the Channel
     /// - parameter params: Optional. Parameters to send when joining.
     /// - parameter socket: Socket that the channel is a part of
-    init(topic: String, params: [String: Any] = [:], socket: Socket) {
+    init(
+        topic: String,
+        params: [String: Any] = [:],
+        socket: Socket
+    ) {
         self.state = ChannelState.closed
         self.topic = topic
         self.params = params
@@ -139,10 +146,12 @@ public class Channel {
         })
         if let ref = onOpenRef { self.stateChangeRefs.append(ref) }
         
+        
         // Setup Push Event to be sent when joining
+        let data = try! self.socket?.encoder.encode(params)
         self.joinPush = Push(channel: self,
                              event: ChannelEvent.join,
-                             payload: self.params,
+                             payload: data!,
                              timeout: self.timeout)
         
         /// Handle when a response is received after join()
@@ -169,9 +178,11 @@ public class Channel {
             // log that the channel timed out
             self.socket?.logItems("channel", "timeout \(self.topic) \(self.joinRef ?? "") after \(self.timeout)s")
             
+            
             // Send a Push to the server to leave the channel
             let leavePush = Push(channel: self,
                                  event: ChannelEvent.leave,
+                                 payload: Defaults.emptyPayload,
                                  timeout: self.timeout)
             leavePush.send()
             
@@ -227,8 +238,9 @@ public class Channel {
                 ref: message.ref,
                 topic: self.topic,
                 event: self.replyEventName(ref),
+                payload: message.payload,
                 status: message.status,
-                payload: message.payload
+                pushAsBinary: false
             )
             
             self.trigger(message)
@@ -458,6 +470,9 @@ public class Channel {
                      payload: Payload,
                      timeout: TimeInterval = Defaults.timeoutInterval) -> Push {
         guard joinedOnce else { fatalError("Tried to push \(event) to \(self.topic) before joining. Use channel.join() before pushing events") }
+        guard let payload = try? self.socket?.encoder.encode(payload) else {
+            fatalError("Tried to push \(payload) to \(self.topic) but could not encode.")
+        }
         
         let pushEvent = Push(channel: self,
                              event: event,
@@ -509,6 +524,7 @@ public class Channel {
         // Push event to send to the server
         let leavePush = Push(channel: self,
                              event: ChannelEvent.leave,
+                             payload: Defaults.emptyPayload,
                              timeout: timeout)
         
         // Perform the same behavior if successfully left the channel
@@ -551,7 +567,7 @@ public class Channel {
             ChannelEvent.isLifecyleEvent(message.event)
         else { return true }
         
-        self.socket?.logItems("channel", "dropping outdated message", message.topic, message.event, message.payload, safeJoinRef)
+        self.socket?.logItems("channel", "dropping outdated message", message.topic, message.event, message.payloadString ?? "null", safeJoinRef)
         return false
     }
     
@@ -597,31 +613,33 @@ public class Channel {
     func trigger(event: String,
                  payload: Payload = [:],
                  ref: String = "",
-                 joinRef: String? = nil) {
-        
-        // Convert the dictionary into a json string. This is an intermitent
-        // step until a more robust solution is found
-        let data = Defaults.encode(payload)
-        let json = String(data: data, encoding: .utf8)!
+                 joinRef: String? = nil,
+                 status: String? = nil) {
+        let encoder = PhoenixPayloadEncoder()
+        let data = try? encoder.encode(payload)
         
         self.trigger(
             event: event,
-            payload: .json(json),
+            payload: data!,
             ref: ref,
-            joinRef: joinRef
+            joinRef: joinRef,
+            status: status
         )
     }
     
     func trigger(event: String,
-                 payload: MessagePayload,
+                 payload: Data,
                  ref: String?,
-                 joinRef: String? = nil) {
-        let message = Message.message(
+                 joinRef: String? = nil,
+                 status: String? = nil) {
+        let message = Message(
             joinRef: joinRef ?? self.joinRef,
             ref: ref,
             topic: self.topic,
             event: event,
-            payload: payload
+            payload: payload,
+            status: status,
+            pushAsBinary: false
         )
         
         self.trigger(message)
