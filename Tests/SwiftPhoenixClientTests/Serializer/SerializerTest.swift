@@ -10,7 +10,7 @@ import Testing
 import XCTest
 @testable import SwiftPhoenixClient
 
-final class PhoenixSerializerTest {
+final class SerializerTest {
     
     private let serializer: Serializer = PhoenixSerializer()
     private let payloadEncoder: PayloadEncoder = PhoenixPayloadEncoder()
