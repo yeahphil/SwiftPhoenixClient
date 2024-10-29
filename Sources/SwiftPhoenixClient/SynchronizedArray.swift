@@ -13,6 +13,14 @@ public class SynchronizedArray<Element> {
     fileprivate let queue = DispatchQueue(label: "spc_sync_array", attributes: .concurrent)
     fileprivate var array: [Element]
     
+    var count: Int {
+        self.array.count
+    }
+    
+    var isEmpty: Bool {
+        self.array.isEmpty
+    }
+    
     public init(_ array: [Element] = []) {
         self.array = array
     }

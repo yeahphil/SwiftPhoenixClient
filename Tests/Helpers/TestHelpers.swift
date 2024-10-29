@@ -24,11 +24,11 @@ import Foundation
 enum TestError: Error {
   case stub
 }
-
-func toWebSocketText(data: [Any?]) -> String {
-  let encoded = Defaults.encode(data)
-  return String(decoding: encoded, as: UTF8.self)
-}
+//
+//func toWebSocketText(data: [Any?]) -> String {
+//  let encoded = Defaults.encode(data)
+//  return String(decoding: encoded, as: UTF8.self)
+//}
 
 /// Transforms two Dictionaries into NSDictionaries so they can be conpared
 func transform(_ lhs: [AnyHashable: Any],

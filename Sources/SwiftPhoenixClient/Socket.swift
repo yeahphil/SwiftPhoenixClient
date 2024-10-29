@@ -86,12 +86,8 @@ public class Socket: PhoenixTransportDelegate {
     /// Customize how payloads are encoded before being sent to the server
     public var encoder: PayloadEncoder = PhoenixPayloadEncoder()
     
-    
-    /// Override to provide custom encoding of data before writing to the socket
-    public var encode: (Any) -> Data = Defaults.encode
-    
-    /// Override to provide custom decoding of data read from the socket
-    public var decode: (Data) -> Any? = Defaults.decode
+    /// Customize how payloads are decoded when being received from the server
+    public var decoder: PayloadDecoder = PhoenixPayloadDecoder()
     
     /// Timeout to use when opening connections
     public var timeout: TimeInterval = Defaults.timeoutInterval
