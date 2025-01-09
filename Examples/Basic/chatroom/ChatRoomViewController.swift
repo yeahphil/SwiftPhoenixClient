@@ -39,8 +39,8 @@ class ChatRoomViewController: UIViewController {
     
     // MARK: - Attributes
     private let username: String = "ChatRoom"
-      private let socket = Socket("http://localhost:4000/socket/websocket")
-//    private let socket = Socket("https://phoenix-chat.fly.dev/socket/websocket")
+//      private let socket = Socket("http://localhost:4000/socket/websocket")
+    private let socket = Socket("https://phoenix-chat.fly.dev/socket/websocket")
     private let topic: String = "room:lobby"
     
     private var lobbyChannel: Channel?
@@ -127,17 +127,17 @@ class ChatRoomViewController: UIViewController {
     
     private func connectToChat() {
         // Setup the socket to receive open/close events
-        socket.delegateOnOpen(to: self) { (self) in
+        socket.onOpen {
             print("CHAT ROOM: Socket Opened")
         }
         
-        socket.delegateOnClose(to: self) { (self) in
+        socket.onClose {
             print("CHAT ROOM: Socket Closed")
-            
         }
         
-        socket.delegateOnError(to: self) { (self, error) in
-            let (error, response) = error
+        socket.onError { [weak self] (error, response) in
+            guard let self else { return }
+
             if let statusCode = (response as? HTTPURLResponse)?.statusCode, statusCode > 400 {
                 print("CHAT ROOM: Socket Errored. \(statusCode)")
                 self.socket.disconnect()
@@ -150,7 +150,9 @@ class ChatRoomViewController: UIViewController {
         
         // Setup the Channel to receive and send messages
         let channel = socket.channel(topic, params: ["status": "joining"])
-        channel.delegateOn("shout", to: self) { (self, message) in
+        channel.on("shout") { [weak self] message in
+            guard let self else { return }
+
             let shout = try? self.jsonDecoder.decode(Shout.self,
                                                      from: message.payload)
             
@@ -168,12 +170,12 @@ class ChatRoomViewController: UIViewController {
         self.lobbyChannel = channel
         self.lobbyChannel?
             .join()
-            .delegateReceive("ok", to: self, callback: { (self, message) in
+            .receive("ok") { message in
                 print("CHANNEL: rooms:lobby joined. status <\(message.status ?? "null")>")
-            })
-            .delegateReceive("error", to: self, callback: { (self, message) in
+            }
+            .receive("error") { message in
                 print("CHANNEL: rooms:lobby failed to join. payload <\(message.payloadString ?? "null")>  status <\(message.status ?? "null")> ")
-            })
+            }
         
         self.socket.connect()
     }

@@ -26,12 +26,12 @@
 ///     let reconnectTimer = TimeoutTimer()
 ///
 ///     // Receive a callbcak when the timer is fired
-///     reconnectTimer.callback.delegate(to: self) { (_) in
+///     reconnectTimer.callback = {
 ///         print("timer was fired")
 ///     }
 ///
 ///     // Provide timer interval calculation
-///     reconnectTimer.timerCalculation.delegate(to: self) { (_, tries) -> TimeInterval in
+///     reconnectTimer.timerCalculation = { tries -> TimeInterval in
 ///         return tries > 2 ? 1000 : [1000, 5000, 10000][tries - 1]
 ///     }
 ///
@@ -45,11 +45,11 @@ import Foundation
 // sourcery: AutoMockable
 class TimeoutTimer {
   
-  /// Callback to be informed when the underlying Timer fires
-  var callback = Delegated<(), Void>()
+    /// Callback to be informed when the underlying Timer fires
+    var callback: (() -> Void)? = nil
   
   /// Provides TimeInterval to use when scheduling the timer
-  var timerCalculation = Delegated<Int, TimeInterval>()
+    var timerCalculation: ((Int) -> TimeInterval)? = nil
   
   /// The work to be done when the queue fires
   var workItem: DispatchWorkItem? = nil
@@ -76,12 +76,13 @@ class TimeoutTimer {
     
     // Get the next calculated interval, in milliseconds. Do not
     // start the timer if the interval is returned as nil.
-    guard let timeInterval
-      = self.timerCalculation.call(self.tries + 1) else { return }
+      guard let timeInterval = self.timerCalculation?(self.tries + 1) else {
+          return
+      }
     
     let workItem = DispatchWorkItem {
       self.tries += 1
-      self.callback.call()
+      self.callback?()
     }
     
     self.workItem = workItem
