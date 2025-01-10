@@ -84,9 +84,8 @@ class ChatRoomViewController: UIViewController {
     
     @IBAction func onSendButtonPressed(_ sender: Any) {
         // Create and send the payload
-        let payload = ["name": username, "message": messageInput.text!]
-        
-        self.lobbyChannel?.push("shout", payload: payload)
+        let shout = Shout(name: username, message: messageInput.text!)
+        self.lobbyChannel?.push("shout", payload: shout)
         
         // Clear the text intput
         self.messageInput.text = ""
@@ -150,14 +149,10 @@ class ChatRoomViewController: UIViewController {
         
         // Setup the Channel to receive and send messages
         let channel = socket.channel(topic, params: ["status": "joining"])
-        channel.on("shout") { [weak self] message in
+        channel.on("shout", expecting: Shout.self) { [weak self] shout in
             guard let self else { return }
-
-            let shout = try? self.jsonDecoder.decode(Shout.self,
-                                                     from: message.payload)
             
             self.shouts.append(shout!)
-            
             
             DispatchQueue.main.async {
                 let indexPath = IndexPath(row: self.shouts.count - 1, section: 0)
