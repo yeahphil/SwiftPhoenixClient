@@ -32,8 +32,8 @@
 		12EF620425524B6800A6EE9B /* SocketSpec.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12EF61FF25524B6800A6EE9B /* SocketSpec.swift */; };
 		12EF620525524B6800A6EE9B /* ChannelSpec.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12EF620025524B6800A6EE9B /* ChannelSpec.swift */; };
 		12EF620625524B6800A6EE9B /* PresenceSpec.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12EF620125524B6800A6EE9B /* PresenceSpec.swift */; };
-		12EF620725524B6800A6EE9B /* TimeoutTimerSpec.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12EF620225524B6800A6EE9B /* TimeoutTimerSpec.swift */; };
-		12EF620825524B6800A6EE9B /* DefaultSerializerSpec.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12EF620325524B6800A6EE9B /* DefaultSerializerSpec.swift */; };
+		4ADF08DB2D30FB1100D681A5 /* TimeoutTimerTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4ADF08DA2D30FB1100D681A5 /* TimeoutTimerTest.swift */; };
+		4ADF08DD2D3100D700D681A5 /* HeartbeatTimerTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4ADF08DC2D3100D700D681A5 /* HeartbeatTimerTest.swift */; };
 		6322938E2C952508003EEDE1 /* JsonElement.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6322938D2C952508003EEDE1 /* JsonElement.swift */; };
 		632293902C952689003EEDE1 /* InboundMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6322938F2C952689003EEDE1 /* InboundMessage.swift */; };
 		634398462CCFDA9200A2B9AC /* PayloadDecoder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 634398452CCFDA9200A2B9AC /* PayloadDecoder.swift */; };
@@ -42,8 +42,7 @@
 		6343984E2CD0075B00A2B9AC /* DefaultsTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6343984D2CD0075B00A2B9AC /* DefaultsTest.swift */; };
 		634398502CD009F800A2B9AC /* SocketTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6343984F2CD009F800A2B9AC /* SocketTest.swift */; };
 		634E20EC2CC4813D0037A570 /* PayloadEncoder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 634E20EB2CC4813D0037A570 /* PayloadEncoder.swift */; };
-		635669C4261631DC0068B665 /* URLSessionTransportSpec.swift in Sources */ = {isa = PBXBuildFile; fileRef = 635669C3261631DC0068B665 /* URLSessionTransportSpec.swift */; };
-		63ACBE9426D53DF500171582 /* HeartbeatTimerSpec.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63ACBE9326D53DF500171582 /* HeartbeatTimerSpec.swift */; };
+		635669C4261631DC0068B665 /* URLSessionTransportTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 635669C3261631DC0068B665 /* URLSessionTransportTest.swift */; };
 		63BBCF032B897D87004A16C9 /* Serializer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63BBCF022B897D87004A16C9 /* Serializer.swift */; };
 		63BBCF052B897DEF004A16C9 /* SerializerTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63BBCF042B897DEF004A16C9 /* SerializerTest.swift */; };
 		63DE6CCA272A2ECB00E2A728 /* MessageSpec.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63DE6CC9272A2ECB00E2A728 /* MessageSpec.swift */; };
@@ -110,8 +109,8 @@
 		12EF61FF25524B6800A6EE9B /* SocketSpec.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SocketSpec.swift; sourceTree = "<group>"; };
 		12EF620025524B6800A6EE9B /* ChannelSpec.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ChannelSpec.swift; sourceTree = "<group>"; };
 		12EF620125524B6800A6EE9B /* PresenceSpec.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PresenceSpec.swift; sourceTree = "<group>"; };
-		12EF620225524B6800A6EE9B /* TimeoutTimerSpec.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TimeoutTimerSpec.swift; sourceTree = "<group>"; };
-		12EF620325524B6800A6EE9B /* DefaultSerializerSpec.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DefaultSerializerSpec.swift; sourceTree = "<group>"; };
+		4ADF08DA2D30FB1100D681A5 /* TimeoutTimerTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimeoutTimerTest.swift; sourceTree = "<group>"; };
+		4ADF08DC2D3100D700D681A5 /* HeartbeatTimerTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeartbeatTimerTest.swift; sourceTree = "<group>"; };
 		6322938D2C952508003EEDE1 /* JsonElement.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JsonElement.swift; sourceTree = "<group>"; };
 		6322938F2C952689003EEDE1 /* InboundMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InboundMessage.swift; sourceTree = "<group>"; };
 		634398452CCFDA9200A2B9AC /* PayloadDecoder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PayloadDecoder.swift; sourceTree = "<group>"; };
@@ -120,8 +119,7 @@
 		6343984D2CD0075B00A2B9AC /* DefaultsTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DefaultsTest.swift; sourceTree = "<group>"; };
 		6343984F2CD009F800A2B9AC /* SocketTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SocketTest.swift; sourceTree = "<group>"; };
 		634E20EB2CC4813D0037A570 /* PayloadEncoder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PayloadEncoder.swift; sourceTree = "<group>"; };
-		635669C3261631DC0068B665 /* URLSessionTransportSpec.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = URLSessionTransportSpec.swift; sourceTree = "<group>"; };
-		63ACBE9326D53DF500171582 /* HeartbeatTimerSpec.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeartbeatTimerSpec.swift; sourceTree = "<group>"; };
+		635669C3261631DC0068B665 /* URLSessionTransportTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = URLSessionTransportTest.swift; sourceTree = "<group>"; };
 		63B526842656CF9600289719 /* Starscream.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = Starscream.xcframework; path = Carthage/Build/Starscream.xcframework; sourceTree = "<group>"; };
 		63B5268D2656CFFE00289719 /* RxSwift.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = RxSwift.xcframework; path = Carthage/Build/RxSwift.xcframework; sourceTree = "<group>"; };
 		63B526DC2656D53700289719 /* Nimble.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = Nimble.xcframework; path = Carthage/Build/Nimble.xcframework; sourceTree = "<group>"; };
@@ -288,11 +286,10 @@
 				12EF61FF25524B6800A6EE9B /* SocketSpec.swift */,
 				12EF620025524B6800A6EE9B /* ChannelSpec.swift */,
 				12EF620125524B6800A6EE9B /* PresenceSpec.swift */,
-				12EF620225524B6800A6EE9B /* TimeoutTimerSpec.swift */,
-				12EF620325524B6800A6EE9B /* DefaultSerializerSpec.swift */,
-				635669C3261631DC0068B665 /* URLSessionTransportSpec.swift */,
-				63ACBE9326D53DF500171582 /* HeartbeatTimerSpec.swift */,
+				635669C3261631DC0068B665 /* URLSessionTransportTest.swift */,
 				63DE6CC9272A2ECB00E2A728 /* MessageSpec.swift */,
+				4ADF08DA2D30FB1100D681A5 /* TimeoutTimerTest.swift */,
+				4ADF08DC2D3100D700D681A5 /* HeartbeatTimerTest.swift */,
 			);
 			path = SwiftPhoenixClientTests;
 			sourceTree = "<group>";
@@ -530,14 +527,13 @@
 			buildActionMask = 2147483647;
 			files = (
 				634398502CD009F800A2B9AC /* SocketTest.swift in Sources */,
-				12EF620825524B6800A6EE9B /* DefaultSerializerSpec.swift in Sources */,
-				63ACBE9426D53DF500171582 /* HeartbeatTimerSpec.swift in Sources */,
 				63BBCF052B897DEF004A16C9 /* SerializerTest.swift in Sources */,
+				4ADF08DD2D3100D700D681A5 /* HeartbeatTimerTest.swift in Sources */,
 				12991E11254C456F00BB8650 /* FakeTimerQueue.swift in Sources */,
 				12991E15254C45FC00BB8650 /* FakeTimerQueueSpec.swift in Sources */,
-				635669C4261631DC0068B665 /* URLSessionTransportSpec.swift in Sources */,
-				12EF620725524B6800A6EE9B /* TimeoutTimerSpec.swift in Sources */,
+				635669C4261631DC0068B665 /* URLSessionTransportTest.swift in Sources */,
 				63DE6CCA272A2ECB00E2A728 /* MessageSpec.swift in Sources */,
+				4ADF08DB2D30FB1100D681A5 /* TimeoutTimerTest.swift in Sources */,
 				12991E0F254C454C00BB8650 /* SocketSpy.swift in Sources */,
 				12991E13254C458100BB8650 /* TestHelpers.swift in Sources */,
 				12EF620525524B6800A6EE9B /* ChannelSpec.swift in Sources */,

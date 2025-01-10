@@ -35,6 +35,10 @@ public class SynchronizedArray<Element> {
         queue.sync { self.array }.forEach(body)
     }
     
+    func filter(_ isIncluded: (Element) throws -> Bool) rethrows -> [Element] {
+        return try queue.sync { self.array }.filter(isIncluded)
+    }
+    
     func removeAll() {
         queue.async(flags: .barrier) {
             self.array.removeAll()

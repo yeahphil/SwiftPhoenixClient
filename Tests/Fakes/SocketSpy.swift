@@ -30,7 +30,8 @@ class SocketSpy: Socket {
                      event: String,
                      payload: Data,
                      ref: String? = nil,
-                     joinRef: String? = nil) {
+                     joinRef: String? = nil,
+                     asBinary: Bool = false) {
     self.pushCalled = true
     self.pushCallCount += 1
     self.pushArgs[pushCallCount] = (topic: topic, event: event, payload: payload, ref: ref, joinRef: joinRef)
