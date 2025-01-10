@@ -411,14 +411,33 @@ public class Channel {
     public func push(_ event: String,
                      payload: Payload,
                      timeout: TimeInterval = Defaults.timeoutInterval) -> Push {
-        guard joinedOnce else { fatalError("Tried to push \(event) to \(self.topic) before joining. Use channel.join() before pushing events") }
-        guard let payload = try? self.socket?.encoder.encode(payload) else {
+        guard let data = try? self.socket?.encoder.encode(payload) else {
             fatalError("Tried to push \(payload) to \(self.topic) but could not encode.")
         }
+
+        return push(event, data: data, timeout: timeout)
+    }
+    
+    @discardableResult
+    public func push<T: Encodable>(_ event: String,
+                     payload: T,
+                     timeout: TimeInterval = Defaults.timeoutInterval) -> Push {
+        guard let data = try? self.socket?.encoder.encode(payload) else {
+            fatalError("Tried to push \(payload) to \(self.topic) but could not encode.")
+        }
+
+        return push(event, data: data, timeout: timeout)
+    }
+    
+    @discardableResult
+    public func push(_ event: String,
+                     data: Data,
+                     timeout: TimeInterval = Defaults.timeoutInterval) -> Push {
+        guard joinedOnce else { fatalError("Tried to push \(event) to \(self.topic) before joining. Use channel.join() before pushing events") }
         
         let pushEvent = Push(channel: self,
                              event: event,
-                             payload: payload,
+                             payload: data,
                              timeout: timeout)
         if canPush {
             pushEvent.send()
