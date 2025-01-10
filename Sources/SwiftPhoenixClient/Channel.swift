@@ -363,6 +363,14 @@ public class Channel {
         return ref
     }
     
+    @discardableResult
+    public func on<T: Decodable>(_ event: String, expecting: T.Type, callback: @escaping (T?) -> Void) -> Int {
+        on(event) { message in
+            let payload = try? JSONDecoder().decode(CodableMessage<T>.self, from: message.payload).payload
+            callback(payload)
+        }
+    }
+    
     /// Unsubscribes from a channel event. If a `ref` is given, only the exact
     /// listener will be removed. Else all listeners for the `event` will be
     /// removed.

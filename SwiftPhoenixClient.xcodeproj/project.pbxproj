@@ -35,6 +35,7 @@
 		12EF620725524B6800A6EE9B /* TimeoutTimerSpec.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12EF620225524B6800A6EE9B /* TimeoutTimerSpec.swift */; };
 		12EF620825524B6800A6EE9B /* DefaultSerializerSpec.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12EF620325524B6800A6EE9B /* DefaultSerializerSpec.swift */; };
 		4A5A10662D31D30400E2B7F8 /* MessageHeader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A5A10652D31D30400E2B7F8 /* MessageHeader.swift */; };
+		4A5A10682D31D7CE00E2B7F8 /* CodableMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A5A10672D31D7CE00E2B7F8 /* CodableMessage.swift */; };
 		6322938E2C952508003EEDE1 /* JsonElement.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6322938D2C952508003EEDE1 /* JsonElement.swift */; };
 		632293902C952689003EEDE1 /* InboundMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6322938F2C952689003EEDE1 /* InboundMessage.swift */; };
 		634398462CCFDA9200A2B9AC /* PayloadDecoder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 634398452CCFDA9200A2B9AC /* PayloadDecoder.swift */; };
@@ -114,6 +115,7 @@
 		12EF620225524B6800A6EE9B /* TimeoutTimerSpec.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TimeoutTimerSpec.swift; sourceTree = "<group>"; };
 		12EF620325524B6800A6EE9B /* DefaultSerializerSpec.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DefaultSerializerSpec.swift; sourceTree = "<group>"; };
 		4A5A10652D31D30400E2B7F8 /* MessageHeader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessageHeader.swift; sourceTree = "<group>"; };
+		4A5A10672D31D7CE00E2B7F8 /* CodableMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodableMessage.swift; sourceTree = "<group>"; };
 		6322938D2C952508003EEDE1 /* JsonElement.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JsonElement.swift; sourceTree = "<group>"; };
 		6322938F2C952689003EEDE1 /* InboundMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InboundMessage.swift; sourceTree = "<group>"; };
 		634398452CCFDA9200A2B9AC /* PayloadDecoder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PayloadDecoder.swift; sourceTree = "<group>"; };
@@ -326,6 +328,7 @@
 				634E20EB2CC4813D0037A570 /* PayloadEncoder.swift */,
 				63BBCF022B897D87004A16C9 /* Serializer.swift */,
 				4A5A10652D31D30400E2B7F8 /* MessageHeader.swift */,
+				4A5A10672D31D7CE00E2B7F8 /* CodableMessage.swift */,
 			);
 			path = Serialization;
 			sourceTree = "<group>";
@@ -509,6 +512,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				6322938E2C952508003EEDE1 /* JsonElement.swift in Sources */,
+				4A5A10682D31D7CE00E2B7F8 /* CodableMessage.swift in Sources */,
 				12991DFB254C3EB800BB8650 /* Defaults.swift in Sources */,
 				4A5A10662D31D30400E2B7F8 /* MessageHeader.swift in Sources */,
 				634E20EC2CC4813D0037A570 /* PayloadEncoder.swift in Sources */,
