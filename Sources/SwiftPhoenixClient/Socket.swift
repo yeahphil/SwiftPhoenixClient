@@ -709,8 +709,11 @@ public class Socket: PhoenixTransportDelegate {
     }
     
     public func onMessage(string: String) {
-        guard let message = try? serializer.decode(text: string) else {
-            self.logItems("receive: Unable to parse JSON: \(string)")
+        let message: Message
+        do {
+            message = try serializer.decode(text: string)
+        } catch {
+            self.logItems("receive: Unable to parse JSON: \(error), \(string)")
             return
         }
         
