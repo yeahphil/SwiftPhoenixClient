@@ -112,53 +112,38 @@ public class PhoenixSerializer: Serializer {
         return Data(byteArray)
     }
     
+
     
     public func decode(text: String) throws -> Message {
+        // Ugh, not good to convert back to Data. But a String is what the `URLSessionWebSocketTask` offers up.
         guard
-            let jsonData = text.data(using: .utf8)
+            let data = text.data(using: .utf8)
         else {
             throw PhxError.serializerError(reason: .dataFromStringFailed(string: text))
         }
         
-        let inboundMesage = try payloadDecoder.decode(InboundMessage.self, from: jsonData)
+        // Decode just the headers
+        let headers = try JSONDecoder().decode(MessageHeader.self, from: data)
         
-        let joinRef = inboundMesage.joinRef
-        let ref = inboundMesage.ref
-        let topic = inboundMesage.topic
-        let event = inboundMesage.event
-        let payload = inboundMesage.payload
-        
-        // For phx_reply events, parse the payload from {"response": payload, "status": "ok"}.
-        // Note that `payload` can be any primitive or another object
-        if event == ChannelEvent.reply, case .object(let payloadMap) = payload  {
-            guard
-                let response = payloadMap["response"],
-                case .string(let status) = payloadMap["status"]
-            else {
+        if headers.event == ChannelEvent.reply {
+            guard let status = headers.status else {
                 throw PhxError.serializerError(reason: .invalidReplyStructure(string: text))
             }
             
             return Message.reply(
-                joinRef: joinRef,
-                ref: ref,
-                topic: topic,
+                joinRef: headers.joinRef,
+                ref: headers.ref,
+                topic: headers.topic,
                 status: status,
-                payload: try encodeToData(jsonElement: response)
-            )
-        } else if joinRef != nil || ref != nil {
-            return Message.message(
-                joinRef: joinRef,
-                ref: ref,
-                topic: topic,
-                event: event,
-                payload: try encodeToData(jsonElement: payload)
+                payload: data // FIXME: try encodeToData(jsonElement: response)
             )
         } else {
-            return Message.broadcast(
-                topic: topic,
-                event: event,
-                payload: try encodeToData(jsonElement: payload)
-                
+            return Message.message(
+                joinRef: headers.joinRef,
+                ref: headers.ref,
+                topic: headers.topic,
+                event: headers.event,
+                payload: data // FIXME: try encodeToData(jsonElement: payload)
             )
         }
     }
