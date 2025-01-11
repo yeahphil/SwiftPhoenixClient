@@ -116,7 +116,6 @@ public class Push {
     
     /// Receive a specific event when sending an Outbound message. Subscribing
     /// to status events with this method does not guarantees no retain cycles.
-    /// You should pass `weak self` in the capture list of the callback.
     /// 
     /// Example:
     ///

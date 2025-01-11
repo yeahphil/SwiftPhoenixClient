@@ -134,8 +134,8 @@ public class Channel {
             }
         }
         
-        self.rejoinTimer.timerCalculation = { [weak self ] in
-            self?.socket?.rejoinAfter($0) ?? 5.0
+        self.rejoinTimer.timerCalculation = { [weak self] tries in
+            self?.socket?.rejoinAfter(tries) ?? 5.0
         }
         
         // Respond to socket events

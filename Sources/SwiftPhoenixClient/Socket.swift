@@ -180,7 +180,9 @@ public class Socket: PhoenixTransportDelegate {
             self.teardown(reason: "reconnection") { self.connect() }
         }
         self.reconnectTimer.timerCalculation = { [weak self] tries in
-            guard let self else { return 5.0 }
+            guard let self else {
+                return Defaults.reconnectSteppedBackOff(tries)
+            }
             
             let interval = self.reconnectAfter(tries)
             self.logItems("Socket reconnecting in \(interval)s")
@@ -306,8 +308,7 @@ public class Socket: PhoenixTransportDelegate {
     // MARK: - Register Socket State Callbacks
     //----------------------------------------------------------------------
     
-    /// Registers callbacks for connection open events. Does not handle retain
-    /// cycles. Use `delegateOnOpen(to:)` for automatic handling of retain cycles.
+    /// Registers callbacks for connection open events.
     ///
     /// Example:
     ///
@@ -318,11 +319,10 @@ public class Socket: PhoenixTransportDelegate {
     /// - parameter callback: Called when the Socket is opened
     @discardableResult
     public func onOpen(callback: @escaping () -> Void) -> String {
-        onOpen { _ in callback() }
+        self.onOpen { _ in callback() }
     }
     
-    /// Registers callbacks for connection open events. Does not handle retain
-    /// cycles. Use `delegateOnOpen(to:)` for automatic handling of retain cycles.
+    /// Registers callbacks for connection open events.
     ///
     /// Example:
     ///
@@ -333,11 +333,10 @@ public class Socket: PhoenixTransportDelegate {
     /// - parameter callback: Called when the Socket is opened
     @discardableResult
     public func onOpen(callback: @escaping (URLResponse?) -> Void) -> String {
-        append(callback: callback, to: self.stateChangeCallbacks.open)
+        self.append(callback: callback, to: self.stateChangeCallbacks.open)
     }
     
-    /// Registers callbacks for connection close events. Does not handle retain
-    /// cycles. Use `delegateOnClose(_:)` for automatic handling of retain cycles.
+    /// Registers callbacks for connection close events.
     ///
     /// Example:
     ///
@@ -348,7 +347,7 @@ public class Socket: PhoenixTransportDelegate {
     /// - parameter callback: Called when the Socket is closed
     @discardableResult
     public func onClose(callback: @escaping () -> Void) -> String {
-        onClose { _, _ in callback() }
+        self.onClose { _, _ in callback() }
     }
     
     /// Registers callbacks for connection close events.
@@ -362,7 +361,7 @@ public class Socket: PhoenixTransportDelegate {
     /// - parameter callback: Called when the Socket is closed
     @discardableResult
     public func onClose(callback: @escaping (URLSessionWebSocketTask.CloseCode, String?) -> Void) -> String {
-        append(callback: callback, to: self.stateChangeCallbacks.close)
+        self.append(callback: callback, to: self.stateChangeCallbacks.close)
     }
     
     /// Registers callbacks for connection error events.
@@ -376,7 +375,7 @@ public class Socket: PhoenixTransportDelegate {
     /// - parameter callback: Called when the Socket errors
     @discardableResult
     public func onError(callback: @escaping (Error, URLResponse?) -> Void) -> String {
-        append(callback: callback, to: self.stateChangeCallbacks.error)
+        self.append(callback: callback, to: self.stateChangeCallbacks.error)
     }
     
     /// Registers callbacks for connection message events.
@@ -390,7 +389,7 @@ public class Socket: PhoenixTransportDelegate {
     /// - parameter callback: Called when the Socket receives a message event
     @discardableResult
     public func onMessage(callback: @escaping MessageHandler) -> String {
-        append(callback: callback, to: self.stateChangeCallbacks.message)
+        self.append(callback: callback, to: self.stateChangeCallbacks.message)
     }
     
     private func append<T>(callback: T, to array: SynchronizedArray<(ref: String, callback: T)>) -> String {
@@ -403,10 +402,10 @@ public class Socket: PhoenixTransportDelegate {
     /// call this method when you are finished when the Socket in order to release
     /// any references held by the socket.
     public func releaseCallbacks() {
-        stateChangeCallbacks.open.removeAll()
-        stateChangeCallbacks.close.removeAll()
-        stateChangeCallbacks.error.removeAll()
-        stateChangeCallbacks.message.removeAll()
+        self.stateChangeCallbacks.open.removeAll()
+        self.stateChangeCallbacks.close.removeAll()
+        self.stateChangeCallbacks.error.removeAll()
+        self.stateChangeCallbacks.message.removeAll()
     }
     
     
