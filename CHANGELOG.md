@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file. The format 
 
 This product uses [Semantic Versioning](https://semver.org/).
 
+### 5.3.5
+
+- Fix `objc_loadWeakRetained` on iOS 18 in the `Transport` layer
+
+### 5.3.4
+
+- Added various weak self checks
+
 ### 5.3.3
 
 - Added weak self references in heartbeat timer
