@@ -225,8 +225,10 @@ public final class Presence {
       let diffEvent = opts.events[.diff] else { return }
     
     
-    self.channel?.delegateOn(stateEvent, to: self) { (self, message) in
-        // TODO: Fix Presence since Payload has been overhauled
+      // TODO: Fix Presence since Payload has been overhauled
+//      self.channel?.on(stateEvent) { [weak self] message in
+//        guard let self else { return }
+//
 //      guard let newState = message.rawPayload as? State else { return }
 //      let newState = [
 //      self.joinRef = self.channel?.joinRef
@@ -244,10 +246,12 @@ public final class Presence {
 //      
 //      self.pendingDiffs = []
 //      self.caller.onSync()
-    }
+//    }
     
-    self.channel?.delegateOn(diffEvent, to: self) { (self, message) in
-        // TODO: Fix Presence since Payload has been overhauled
+      // TODO: Fix Presence since Payload has been overhauled
+//    self.channel?.on(diffEvent) { [weak self] message in
+//        guard let self else { return }
+//
 //      guard let diff = message.rawPayload as? Diff else { return }
 //      if self.isPendingSyncState {
 //        self.pendingDiffs.append(diff)
@@ -258,7 +262,7 @@ public final class Presence {
 //                                       onLeave: self.caller.onLeave)
 //        self.caller.onSync()
 //      }
-    }
+//    }
   }
   
   /// Returns the array of presences, with deault selected metadata.

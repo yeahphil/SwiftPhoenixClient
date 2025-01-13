@@ -27,10 +27,10 @@ public typealias PayloadClosure = () -> Payload?
 
 /// Struct that gathers callbacks assigned to the Socket
 struct StateChangeCallbacks {
-    let open: SynchronizedArray<(ref: String, callback: Delegated<URLResponse?, Void>)> = .init()
-    let close: SynchronizedArray<(ref: String, callback: Delegated<(URLSessionWebSocketTask.CloseCode, String?), Void>)> = .init()
-    let error: SynchronizedArray<(ref: String, callback: Delegated<(Error, URLResponse?), Void>)> = .init()
-    let message: SynchronizedArray<(ref: String, callback: Delegated<Message, Void>)> = .init()
+    let open: SynchronizedArray<(ref: String, callback: ((URLResponse?) -> Void))> = .init()
+    let close: SynchronizedArray<(ref: String, callback: ((URLSessionWebSocketTask.CloseCode, String?) -> Void))> = .init()
+    let error: SynchronizedArray<(ref: String, callback: ((Error, URLResponse?) -> Void))> = .init()
+    let message: SynchronizedArray<(ref: String, callback: ((Message) -> Void))> = .init()
 }
 
 
@@ -173,16 +173,21 @@ public class Socket: PhoenixTransportDelegate {
         self.endPoint = endPoint
         
         self.reconnectTimer = TimeoutTimer()
-        self.reconnectTimer.callback.delegate(to: self) { (self) in
+        self.reconnectTimer.callback = { [weak self] in
+            guard let self else { return }
+
             self.logItems("Socket attempting to reconnect")
             self.teardown(reason: "reconnection") { self.connect() }
         }
-        self.reconnectTimer.timerCalculation
-            .delegate(to: self) { (self, tries) -> TimeInterval in
-                let interval = self.reconnectAfter(tries)
-                self.logItems("Socket reconnecting in \(interval)s")
-                return interval
+        self.reconnectTimer.timerCalculation = { [weak self] tries in
+            guard let self else {
+                return Defaults.reconnectSteppedBackOff(tries)
             }
+            
+            let interval = self.reconnectAfter(tries)
+            self.logItems("Socket reconnecting in \(interval)s")
+            return interval
+        }
     }
     
     deinit {
@@ -293,7 +298,7 @@ public class Socket: PhoenixTransportDelegate {
         
         // Since the connection's delegate was nil'd out, inform all state
         // callbacks that the connection has closed
-        self.stateChangeCallbacks.close.forEach({ $0.callback.call((code, reason)) })
+        self.stateChangeCallbacks.close.forEach({ $0.callback(code, reason) })
         callback?()
     }
     
@@ -303,8 +308,7 @@ public class Socket: PhoenixTransportDelegate {
     // MARK: - Register Socket State Callbacks
     //----------------------------------------------------------------------
     
-    /// Registers callbacks for connection open events. Does not handle retain
-    /// cycles. Use `delegateOnOpen(to:)` for automatic handling of retain cycles.
+    /// Registers callbacks for connection open events.
     ///
     /// Example:
     ///
@@ -315,11 +319,10 @@ public class Socket: PhoenixTransportDelegate {
     /// - parameter callback: Called when the Socket is opened
     @discardableResult
     public func onOpen(callback: @escaping () -> Void) -> String {
-        return self.onOpen { _ in callback() }
+        self.onOpen { _ in callback() }
     }
     
-    /// Registers callbacks for connection open events. Does not handle retain
-    /// cycles. Use `delegateOnOpen(to:)` for automatic handling of retain cycles.
+    /// Registers callbacks for connection open events.
     ///
     /// Example:
     ///
@@ -330,51 +333,10 @@ public class Socket: PhoenixTransportDelegate {
     /// - parameter callback: Called when the Socket is opened
     @discardableResult
     public func onOpen(callback: @escaping (URLResponse?) -> Void) -> String {
-        var delegated = Delegated<URLResponse?, Void>()
-        delegated.manuallyDelegate(with: callback)
-        
-        return self.append(callback: delegated, to: self.stateChangeCallbacks.open)
+        self.append(callback: callback, to: self.stateChangeCallbacks.open)
     }
     
-    /// Registers callbacks for connection open events. Automatically handles
-    /// retain cycles. Use `onOpen()` to handle yourself.
-    ///
-    /// Example:
-    ///
-    ///     socket.delegateOnOpen(to: self) { self in
-    ///         self.print("Socket Connection Open")
-    ///     }
-    ///
-    /// - parameter owner: Class registering the callback. Usually `self`
-    /// - parameter callback: Called when the Socket is opened
-    @discardableResult
-    public func delegateOnOpen<T: AnyObject>(to owner: T,
-                                             callback: @escaping ((T) -> Void)) -> String {
-        return self.delegateOnOpen(to: owner) { owner, _ in callback(owner) }
-    }
-    
-    /// Registers callbacks for connection open events. Automatically handles
-    /// retain cycles. Use `onOpen()` to handle yourself.
-    ///
-    /// Example:
-    ///
-    ///     socket.delegateOnOpen(to: self) { self, response in
-    ///         self.print("Socket Connection Open")
-    ///     }
-    ///
-    /// - parameter owner: Class registering the callback. Usually `self`
-    /// - parameter callback: Called when the Socket is opened
-    @discardableResult
-    public func delegateOnOpen<T: AnyObject>(to owner: T,
-                                             callback: @escaping ((T, URLResponse?) -> Void)) -> String {
-        var delegated = Delegated<URLResponse?, Void>()
-        delegated.delegate(to: owner, with: callback)
-        
-        return self.append(callback: delegated, to: self.stateChangeCallbacks.open)
-    }
-    
-    /// Registers callbacks for connection close events. Does not handle retain
-    /// cycles. Use `delegateOnClose(_:)` for automatic handling of retain cycles.
+    /// Registers callbacks for connection close events.
     ///
     /// Example:
     ///
@@ -385,11 +347,10 @@ public class Socket: PhoenixTransportDelegate {
     /// - parameter callback: Called when the Socket is closed
     @discardableResult
     public func onClose(callback: @escaping () -> Void) -> String {
-        return self.onClose { _, _ in callback() }
+        self.onClose { _, _ in callback() }
     }
     
-    /// Registers callbacks for connection close events. Does not handle retain
-    /// cycles. Use `delegateOnClose(_:)` for automatic handling of retain cycles.
+    /// Registers callbacks for connection close events.
     ///
     /// Example:
     ///
@@ -400,51 +361,10 @@ public class Socket: PhoenixTransportDelegate {
     /// - parameter callback: Called when the Socket is closed
     @discardableResult
     public func onClose(callback: @escaping (URLSessionWebSocketTask.CloseCode, String?) -> Void) -> String {
-        var delegated = Delegated<(URLSessionWebSocketTask.CloseCode, String?), Void>()
-        delegated.manuallyDelegate(with: callback)
-        
-        return self.append(callback: delegated, to: self.stateChangeCallbacks.close)
+        self.append(callback: callback, to: self.stateChangeCallbacks.close)
     }
     
-    /// Registers callbacks for connection close events. Automatically handles
-    /// retain cycles. Use `onClose()` to handle yourself.
-    ///
-    /// Example:
-    ///
-    ///     socket.delegateOnClose(self) { self in
-    ///         self.print("Socket Connection Close")
-    ///     }
-    ///
-    /// - parameter owner: Class registering the callback. Usually `self`
-    /// - parameter callback: Called when the Socket is closed
-    @discardableResult
-    public func delegateOnClose<T: AnyObject>(to owner: T,
-                                              callback: @escaping ((T) -> Void)) -> String {
-        return self.delegateOnClose(to: owner) { owner, _ in callback(owner) }
-    }
-    
-    /// Registers callbacks for connection close events. Automatically handles
-    /// retain cycles. Use `onClose()` to handle yourself.
-    ///
-    /// Example:
-    ///
-    ///     socket.delegateOnClose(self) { self, code, reason in
-    ///         self.print("Socket Connection Close")
-    ///     }
-    ///
-    /// - parameter owner: Class registering the callback. Usually `self`
-    /// - parameter callback: Called when the Socket is closed
-    @discardableResult
-    public func delegateOnClose<T: AnyObject>(to owner: T,
-                                              callback: @escaping ((T, (URLSessionWebSocketTask.CloseCode, String?)) -> Void)) -> String {
-        var delegated = Delegated<(URLSessionWebSocketTask.CloseCode, String?), Void>()
-        delegated.delegate(to: owner, with: callback)
-        
-        return self.append(callback: delegated, to: self.stateChangeCallbacks.close)
-    }
-    
-    /// Registers callbacks for connection error events. Does not handle retain
-    /// cycles. Use `delegateOnError(to:)` for automatic handling of retain cycles.
+    /// Registers callbacks for connection error events.
     ///
     /// Example:
     ///
@@ -454,36 +374,11 @@ public class Socket: PhoenixTransportDelegate {
     ///
     /// - parameter callback: Called when the Socket errors
     @discardableResult
-    public func onError(callback: @escaping ((Error, URLResponse?)) -> Void) -> String {
-        var delegated = Delegated<(Error, URLResponse?), Void>()
-        delegated.manuallyDelegate(with: callback)
-        
-        return self.append(callback: delegated, to: self.stateChangeCallbacks.error)
+    public func onError(callback: @escaping (Error, URLResponse?) -> Void) -> String {
+        self.append(callback: callback, to: self.stateChangeCallbacks.error)
     }
     
-    /// Registers callbacks for connection error events. Automatically handles
-    /// retain cycles. Use `manualOnError()` to handle yourself.
-    ///
-    /// Example:
-    ///
-    ///     socket.delegateOnError(to: self) { (self, error) in
-    ///         self.print("Socket Connection Error", error)
-    ///     }
-    ///
-    /// - parameter owner: Class registering the callback. Usually `self`
-    /// - parameter callback: Called when the Socket errors
-    @discardableResult
-    public func delegateOnError<T: AnyObject>(to owner: T,
-                                              callback: @escaping ((T, (Error, URLResponse?)) -> Void)) -> String {
-        var delegated = Delegated<(Error, URLResponse?), Void>()
-        delegated.delegate(to: owner, with: callback)
-        
-        return self.append(callback: delegated, to: self.stateChangeCallbacks.error)
-    }
-    
-    /// Registers callbacks for connection message events. Does not handle
-    /// retain cycles. Use `delegateOnMessage(_to:)` for automatic handling of
-    /// retain cycles.
+    /// Registers callbacks for connection message events.
     ///
     /// Example:
     ///
@@ -493,31 +388,8 @@ public class Socket: PhoenixTransportDelegate {
     ///
     /// - parameter callback: Called when the Socket receives a message event
     @discardableResult
-    public func onMessage(callback: @escaping (Message) -> Void) -> String {
-        var delegated = Delegated<Message, Void>()
-        delegated.manuallyDelegate(with: callback)
-        
-        return self.append(callback: delegated, to: self.stateChangeCallbacks.message)
-    }
-    
-    /// Registers callbacks for connection message events. Automatically handles
-    /// retain cycles. Use `onMessage()` to handle yourself.
-    ///
-    /// Example:
-    ///
-    ///     socket.delegateOnMessage(self) { (self, message) in
-    ///         self.print("Socket Connection Message", message)
-    ///     }
-    ///
-    /// - parameter owner: Class registering the callback. Usually `self`
-    /// - parameter callback: Called when the Socket receives a message event
-    @discardableResult
-    public func delegateOnMessage<T: AnyObject>(to owner: T,
-                                                callback: @escaping ((T, Message) -> Void)) -> String {
-        var delegated = Delegated<Message, Void>()
-        delegated.delegate(to: owner, with: callback)
-        
-        return self.append(callback: delegated, to: self.stateChangeCallbacks.message)
+    public func onMessage(callback: @escaping MessageHandler) -> String {
+        self.append(callback: callback, to: self.stateChangeCallbacks.message)
     }
     
     private func append<T>(callback: T, to array: SynchronizedArray<(ref: String, callback: T)>) -> String {
@@ -671,7 +543,7 @@ public class Socket: PhoenixTransportDelegate {
         self.resetHeartbeat()
         
         // Inform all onOpen callbacks that the Socket has opened
-        self.stateChangeCallbacks.open.forEach({ $0.callback.call((response)) })
+        self.stateChangeCallbacks.open.forEach({ $0.callback(response) })
     }
     
     internal func onConnectionClosed(code: URLSessionWebSocketTask.CloseCode, reason: String?) {
@@ -689,7 +561,7 @@ public class Socket: PhoenixTransportDelegate {
             self.reconnectTimer.scheduleTimeout()
         }
         
-        self.stateChangeCallbacks.close.forEach({ $0.callback.call((code, reason)) })
+        self.stateChangeCallbacks.close.forEach({ $0.callback(code, reason) })
     }
     
     internal func onConnectionError(_ error: Error, response: URLResponse?) {
@@ -699,7 +571,7 @@ public class Socket: PhoenixTransportDelegate {
         self.triggerChannelError()
         
         // Inform any state callbacks of the error
-        self.stateChangeCallbacks.error.forEach({ $0.callback.call((error, response)) })
+        self.stateChangeCallbacks.error.forEach({ $0.callback(error, response) })
     }
     
     internal func onConnectionMessage(_ message: Message) {
@@ -712,7 +584,7 @@ public class Socket: PhoenixTransportDelegate {
             .forEach( { $0.trigger(message) } )
         
         // Inform all onMessage callbacks of the message
-        self.stateChangeCallbacks.message.forEach({ $0.callback.call(message) })
+        self.stateChangeCallbacks.message.forEach({ $0.callback(message) })
     }
     
     /// Triggers an error event to all of the connected Channels

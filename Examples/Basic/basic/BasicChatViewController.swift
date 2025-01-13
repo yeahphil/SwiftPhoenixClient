@@ -66,27 +66,29 @@ class BasicChatViewController: UIViewController {
         
         self.chatWindow.text = ""
         
-        // To automatically manage retain cycles, use `delegate*(to:)` methods.
-        // If you would prefer to handle them yourself, youcan use the same
-        // methods without the `delegate` functions, just be sure you avoid
-        // memory leakse with `[weak self]`
-        socket.delegateOnOpen(to: self) { (self) in
+        // Blocks passed to onOpen (or other methods that take a callback) must not retain self,
+        // as this will create a retain cycle and leak
+        socket.onOpen { [weak self] in
+            guard let self else { return }
+            
             self.addText("Socket Opened")
             DispatchQueue.main.async {
                 self.connectButton.setTitle("Disconnect", for: .normal)
             }
         }
         
-        socket.delegateOnClose(to: self) { (self) in
+        socket.onClose { [weak self] in
+            guard let self else { return }
+
             self.addText("Socket Closed")
             DispatchQueue.main.async {
                 self.connectButton.setTitle("Connect", for: .normal)
             }
         }
         
-        socket.delegateOnError(to: self) { (self, arg1) in
-            let (error, response) = arg1
-            
+        socket.onError { [weak self] (error, response) in
+            guard let self else { return }
+
             if let statusCode = (response as? HTTPURLResponse)?.statusCode, statusCode > 400 {
                 self.addText("Socket Errored: \(statusCode)")
                 self.socket.disconnect()
@@ -138,23 +140,24 @@ class BasicChatViewController: UIViewController {
         let channel = socket.channel(topic, params: ["status":"joining"])
         
 
-        channel.delegateOn("join", to: self) { (self, _) in
-            self.addText("You joined the room.")
+        channel.on("join") { [weak self] _ in
+            self?.addText("You joined the room.")
         }
         
-        channel.delegateOn("new:msg", to: self) { (self, message) in
-            
-            guard let chat = try? JSONDecoder().decode(Chat.self,
-                                                       from: message.payload)
-            else { return }
-            
+        channel.on("new:msg") { [weak self] message in
+            guard
+                let self,
+                let chat = try? JSONDecoder().decode(Chat.self, from: message.payload)
+            else {
+                return
+            }
             
             let newMessage = "[\(chat.username)] \(chat.body)"
             self.addText(newMessage)
         }
         
-        channel.delegateOn("user:entered", to: self) { (self, message) in
-            self.addText("[anonymous entered]")
+        channel.on("user:entered") { [weak self] message in
+            self?.addText("[anonymous entered]")
         }
         
         self.lobbyChannel = channel
@@ -162,13 +165,12 @@ class BasicChatViewController: UIViewController {
         
         self.lobbyChannel
             .join()
-            .delegateReceive("ok", to: self) { (self, _) in
-                self.addText("Joined Channel")
-            }.delegateReceive("error", to: self) { (self, message) in
-                self.addText("Failed to join channel: \(message.payload)")
+            .receive("ok") { [weak self] _ in
+                self?.addText("Joined Channel")
+            }.receive("error") { [weak self] message in
+                self?.addText("Failed to join channel: \(message.payload)")
             }
         self.socket.connect()
-        
     }
     
     private func addText(_ text: String) {

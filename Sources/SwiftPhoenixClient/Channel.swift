@@ -21,17 +21,19 @@
 import Swift
 import Foundation
 
+public typealias MessageHandler = (Message) -> Void
+
 /// Container class of bindings to the channel
 struct Binding {
     
-    // The event that the Binding is bound to
+    /// The event that the Binding is bound to
     let event: String
     
-    // The reference number of the Binding
+    /// The reference number of the Binding
     let ref: Int
     
-    // The callback to be triggered
-    let callback: Delegated<Message, Void>
+    /// The callback to be triggered
+    let callback: MessageHandler
 }
 
 
@@ -124,26 +126,32 @@ public class Channel {
         self.rejoinTimer = TimeoutTimer()
         
         // Setup Timer delgation
-        self.rejoinTimer.callback
-            .delegate(to: self) { (self) in
-                if self.socket?.isConnected == true { self.rejoin() }
+        self.rejoinTimer.callback = { [weak self] in
+            guard let self else { return }
+            
+            if self.socket?.isConnected == true {
+                self.rejoin()
             }
+        }
         
-        self.rejoinTimer.timerCalculation
-            .delegate(to: self) { (self, tries) -> TimeInterval in
-                return self.socket?.rejoinAfter(tries) ?? 5.0
-            }
+        self.rejoinTimer.timerCalculation = { [weak self] tries in
+            self?.socket?.rejoinAfter(tries) ?? 5.0
+        }
         
         // Respond to socket events
-        let onErrorRef = self.socket?.delegateOnError(to: self, callback: { (self, _) in
-            self.rejoinTimer.reset()
-        })
+        let onErrorRef = self.socket?.onError { [weak self] (_, _) in
+            self?.rejoinTimer.reset()
+        }
+        
         if let ref = onErrorRef { self.stateChangeRefs.append(ref) }
         
-        let onOpenRef = self.socket?.delegateOnOpen(to: self, callback: { (self) in
+        let onOpenRef = self.socket?.onOpen { [weak self] in
+            guard let self else { return }
+
             self.rejoinTimer.reset()
             if (self.isErrored) { self.rejoin() }
-        })
+        }
+        
         if let ref = onOpenRef { self.stateChangeRefs.append(ref) }
         
         
@@ -155,7 +163,9 @@ public class Channel {
                              timeout: self.timeout)
         
         /// Handle when a response is received after join()
-        self.joinPush.delegateReceive("ok", to: self) { (self, _) in
+        self.joinPush.receive("ok") { [weak self] _ in
+            guard let self else { return }
+
             // Mark the Channel as joined
             self.state = ChannelState.joined
             
@@ -168,13 +178,17 @@ public class Channel {
         }
         
         // Perform if Channel errors while attempting to joi
-        self.joinPush.delegateReceive("error", to: self) { (self, _) in
+        self.joinPush.receive("error") { [weak self] _ in
+            guard let self else { return }
+
             self.state = .errored
             if (self.socket?.isConnected == true) { self.rejoinTimer.scheduleTimeout() }
         }
         
         // Handle when the join push times out when sending after join()
-        self.joinPush.delegateReceive("timeout", to: self) { (self, _) in
+        self.joinPush.receive("timeout") { [weak self] _ in
+            guard let self else { return }
+
             // log that the channel timed out
             self.socket?.logItems("channel", "timeout \(self.topic) \(self.joinRef ?? "") after \(self.timeout)s")
             
@@ -194,7 +208,9 @@ public class Channel {
         }
         
         /// Perfom when the Channel has been closed
-        self.delegateOnClose(to: self) { (self, _) in
+        self.onClose { [weak self] _ in
+            guard let self else { return }
+            
             // Reset any timer that may be on-going
             self.rejoinTimer.reset()
             
@@ -207,7 +223,9 @@ public class Channel {
         }
         
         /// Perfom when the Channel errors
-        self.delegateOnError(to: self) { (self, message) in
+        self.onError { [weak self] message in
+            guard let self else { return }
+
             // Log that the channel received an error
             self.socket?.logItems("channel", "error topic: \(self.topic) joinRef: \(self.joinRef ?? "nil") mesage: \(message)")
             
@@ -229,7 +247,9 @@ public class Channel {
         }
         
         // Perform when the join reply is received
-        self.delegateOn(ChannelEvent.reply, to: self) { (self, message) in
+        self.on(ChannelEvent.reply) { [weak self] message in
+            guard let self else { return }
+            
             // Trigger bindings
             guard let ref = message.ref else { return }
             
@@ -279,8 +299,7 @@ public class Channel {
     }
     
     
-    /// Hook into when the Channel is closed. Does not handle retain cycles.
-    /// Use `delegateOnClose(to:)` for automatic handling of retain cycles.
+    /// Hook into when the Channel is closed.
     ///
     /// Example:
     ///
@@ -292,32 +311,11 @@ public class Channel {
     /// - parameter callback: Called when the Channel closes
     /// - return: Ref counter of the subscription. See `func off()`
     @discardableResult
-    public func onClose(_ callback: @escaping ((Message) -> Void)) -> Int {
+    public func onClose(_ callback: @escaping MessageHandler) -> Int {
         return self.on(ChannelEvent.close, callback: callback)
     }
     
-    /// Hook into when the Channel is closed. Automatically handles retain
-    /// cycles. Use `onClose()` to handle yourself.
-    ///
-    /// Example:
-    ///
-    ///     let channel = socket.channel("topic")
-    ///     channel.delegateOnClose(to: self) { (self, message) in
-    ///         self.print("Channel \(message.topic) has closed"
-    ///     }
-    ///
-    /// - parameter owner: Class registering the callback. Usually `self`
-    /// - parameter callback: Called when the Channel closes
-    /// - return: Ref counter of the subscription. See `func off()`
-    @discardableResult
-    public func delegateOnClose<Target: AnyObject>(to owner: Target,
-                                                   callback: @escaping ((Target, Message) -> Void)) -> Int {
-        return self.delegateOn(ChannelEvent.close, to: owner, callback: callback)
-    }
-    
-    /// Hook into when the Channel receives an Error. Does not handle retain
-    /// cycles. Use `delegateOnError(to:)` for automatic handling of retain
-    /// cycles.
+    /// Hook into when the Channel receives an Error.
     ///
     /// Example:
     ///
@@ -329,31 +327,11 @@ public class Channel {
     /// - parameter callback: Called when the Channel closes
     /// - return: Ref counter of the subscription. See `func off()`
     @discardableResult
-    public func onError(_ callback: @escaping ((_ message: Message) -> Void)) -> Int {
+    public func onError(_ callback: @escaping MessageHandler) -> Int {
         return self.on(ChannelEvent.error, callback: callback)
     }
     
-    /// Hook into when the Channel receives an Error. Automatically handles
-    /// retain cycles. Use `onError()` to handle yourself.
-    ///
-    /// Example:
-    ///
-    ///     let channel = socket.channel("topic")
-    ///     channel.delegateOnError(to: self) { (self, message) in
-    ///         self.print("Channel \(message.topic) has closed"
-    ///     }
-    ///
-    /// - parameter owner: Class registering the callback. Usually `self`
-    /// - parameter callback: Called when the Channel closes
-    /// - return: Ref counter of the subscription. See `func off()`
-    @discardableResult
-    public func delegateOnError<Target: AnyObject>(to owner: Target,
-                                                   callback: @escaping ((Target, Message) -> Void)) -> Int {
-        return self.delegateOn(ChannelEvent.error, to: owner, callback: callback)
-    }
-    
-    /// Subscribes on channel events. Does not handle retain cycles. Use
-    /// `delegateOn(_:, to:)` for automatic handling of retain cycles.
+    /// Subscribes on channel events.
     ///
     /// Subscription returns a ref counter, which can be used later to
     /// unsubscribe the exact event listener
@@ -376,55 +354,12 @@ public class Channel {
     /// - parameter callback: Called with the event's message
     /// - return: Ref counter of the subscription. See `func off()`
     @discardableResult
-    public func on(_ event: String, callback: @escaping ((Message) -> Void)) -> Int {
-        var delegated = Delegated<Message, Void>()
-        delegated.manuallyDelegate(with: callback)
-        
-        return self.on(event, delegated: delegated)
-    }
-    
-    
-    /// Subscribes on channel events. Automatically handles retain cycles. Use
-    /// `on()` to handle yourself.
-    ///
-    /// Subscription returns a ref counter, which can be used later to
-    /// unsubscribe the exact event listener
-    ///
-    /// Example:
-    ///
-    ///     let channel = socket.channel("topic")
-    ///     let ref1 = channel.delegateOn("event", to: self) { (self, message) in
-    ///         self?.print("do stuff")
-    ///     }
-    ///     let ref2 = channel.delegateOn("event", to: self) { (self, message) in
-    ///         self?.print("do other stuff")
-    ///     }
-    ///     channel.off("event", ref1)
-    ///
-    /// Since unsubscription of ref1, "do stuff" won't print, but "do other
-    /// stuff" will keep on printing on the "event"
-    ///
-    /// - parameter event: Event to receive
-    /// - parameter owner: Class registering the callback. Usually `self`
-    /// - parameter callback: Called with the event's message
-    /// - return: Ref counter of the subscription. See `func off()`
-    @discardableResult
-    public func delegateOn<Target: AnyObject>(_ event: String,
-                                              to owner: Target,
-                                              callback: @escaping ((Target, Message) -> Void)) -> Int {
-        var delegated = Delegated<Message, Void>()
-        delegated.delegate(to: owner, with: callback)
-        
-        return self.on(event, delegated: delegated)
-    }
-    
-    /// Shared method between `on` and `manualOn`
-    @discardableResult
-    private func on(_ event: String, delegated: Delegated<Message, Void>) -> Int {
+    public func on(_ event: String, callback: @escaping MessageHandler) -> Int {
         let ref = bindingRef
         self.bindingRef = ref + 1
         
-        self.syncBindingsDel.append(Binding(event: event, ref: ref, callback: delegated))
+        self.syncBindingsDel.append(Binding(event: event, ref: ref, callback: callback))
+        
         return ref
     }
     
@@ -542,9 +477,9 @@ public class Channel {
         // Now set the state to leaving
         self.state = .leaving
         
-        /// Delegated callback for a successful or a failed channel leave
-        var onCloseDelegate = Delegated<Message, Void>()
-        onCloseDelegate.delegate(to: self) { (self, message) in
+        let closeHandler: MessageHandler = { [weak self] message in
+            guard let self else { return }
+            
             self.socket?.logItems("channel", "leave \(self.topic)")
             
             // Triggers onClose() hooks
@@ -560,8 +495,8 @@ public class Channel {
         // Perform the same behavior if successfully left the channel
         // or if sending the event timed out
         leavePush
-            .receive("ok", delegated: onCloseDelegate)
-            .receive("timeout", delegated: onCloseDelegate)
+            .receive("ok", callback: closeHandler)
+            .receive("timeout", callback: closeHandler)
         leavePush.send()
         
         // If the Channel cannot send push events, trigger a success locally
@@ -628,7 +563,7 @@ public class Channel {
         
         self.syncBindingsDel.forEach { binding in
             if binding.event == message.event {
-                binding.callback.call(handledMessage)
+                binding.callback(handledMessage)
             }
         }
     }
