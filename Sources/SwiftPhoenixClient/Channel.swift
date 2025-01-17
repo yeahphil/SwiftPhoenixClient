@@ -581,8 +581,7 @@ public class Channel {
                  joinRef: String? = nil,
                  status: String? = nil) {
         
-        let encoder = PhoenixPayloadEncoder()
-        let data = try? encoder.encode(any: payload)
+        let data = try? socket?.encoder.encode(any: payload)
         
         self.trigger(
             event: event,
