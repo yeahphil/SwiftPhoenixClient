@@ -7,20 +7,28 @@
 //
 
 ///
-/// Represents a string message received from the Server that has been decoded
+/// Represents a string message received from the Server that has been deserialized
 /// from the format
 ///
 ///     "[join_ref, ref, topic, event, payload]"
 ///
-/// into a decodable structure. Will then further be converted into a `Message`
+/// This is an intermediate representation, intended to be further converted into a `Message`
 /// by the `Serializer` before being passed into the rest of the client.
 ///
-struct InboundMessage {
+struct IntermediateMessage {
     let joinRef: String?
     let ref: String?
     let topic: String
     let event: String
     let payload: [String: Any]
+    
+    init(joinRef: String?, ref: String?, topic: String, event: String, payload: [String: Any]) {
+        self.joinRef = joinRef
+        self.ref = ref
+        self.topic = topic
+        self.event = event
+        self.payload = payload
+    }
     
     /// Init from an array of `Any`. Expects "[join_ref, ref, topic, event, payload]"
     /// Suitable for passing JSONSerialization output to.
@@ -58,5 +66,9 @@ struct InboundMessage {
         self.topic = topic
         self.event = event
         self.payload = payload
+    }
+    
+    func toJSONObject() -> [Any] {
+        [joinRef as Any, ref as Any, topic, event, payload]
     }
 }

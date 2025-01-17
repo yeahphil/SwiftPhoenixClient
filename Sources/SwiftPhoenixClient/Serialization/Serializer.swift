@@ -71,7 +71,7 @@ public class PhoenixSerializer: Serializer {
             throw PhxError.serializerError(reason: .decodingPayloadFailed)
         }
         
-        let serverMessage = OutboundMessage(
+        let serverMessage = IntermediateMessage(
             joinRef: message.joinRef,
             ref: message.ref,
             topic: message.topic,
@@ -125,11 +125,11 @@ public class PhoenixSerializer: Serializer {
             throw PhxError.serializerError(reason: .dataFromStringFailed(string: text))
         }
         
-        guard let inboundMessageDict = try payloadDecoder.decode(from: jsonData) as? [Any] else {
+        guard let inboundMessageArray = try payloadDecoder.decode(from: jsonData) as? [Any] else {
             throw PhxError.serializerError(reason: .invalidStructure(string: text))
         }
         
-        let inboundMessage = try InboundMessage(inboundMessageDict)
+        let inboundMessage = try IntermediateMessage(inboundMessageArray)
         
         // For phx_reply events, parse the payload from {"response": payload, "status": "ok"}.
         // Note that `payload` can be any primitive or another object
