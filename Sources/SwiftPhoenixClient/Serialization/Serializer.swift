@@ -67,7 +67,9 @@ public class PhoenixSerializer: Serializer {
     }
     
     public func encode(message: Message) throws -> String {
-        let json = try payloadDecoder.decode(JsonElement.self, from: message.payload)
+        guard let json = try payloadDecoder.decode(from: message.payload) as? [String: Any] else {
+            throw PhxError.serializerError(reason: .decodingPayloadFailed)
+        }
         
         let serverMessage = OutboundMessage(
             joinRef: message.joinRef,
@@ -77,8 +79,13 @@ public class PhoenixSerializer: Serializer {
             payload: json
         )
         
+        let data = try payloadEncoder.encode(any: serverMessage.toJSONObject())
         
-        return try convertToString(encodable: serverMessage)
+        guard let encoded = String(data: data, encoding: .utf8) else {
+            throw PhxError.serializerError(reason: .stringFromDataFailed(string: "encode(message:)"))
+        }
+        
+        return encoded
     }
     
     public func binaryEncode(message: Message) -> Data {
@@ -118,45 +125,42 @@ public class PhoenixSerializer: Serializer {
             throw PhxError.serializerError(reason: .dataFromStringFailed(string: text))
         }
         
-        let inboundMesage = try payloadDecoder.decode(InboundMessage.self, from: jsonData)
+        guard let inboundMessageDict = try payloadDecoder.decode(from: jsonData) as? [Any] else {
+            throw PhxError.serializerError(reason: .invalidStructure(string: text))
+        }
         
-        let joinRef = inboundMesage.joinRef
-        let ref = inboundMesage.ref
-        let topic = inboundMesage.topic
-        let event = inboundMesage.event
-        let payload = inboundMesage.payload
+        let inboundMessage = try InboundMessage(inboundMessageDict)
         
         // For phx_reply events, parse the payload from {"response": payload, "status": "ok"}.
         // Note that `payload` can be any primitive or another object
-        if event == ChannelEvent.reply, case .object(let payloadMap) = payload  {
+        if inboundMessage.event == ChannelEvent.reply {
             guard
-                let response = payloadMap["response"],
-                case .string(let status) = payloadMap["status"]
+                let response = inboundMessage.payload["response"],
+                let status = inboundMessage.payload["status"] as? String
             else {
                 throw PhxError.serializerError(reason: .invalidReplyStructure(string: text))
             }
             
             return Message.reply(
-                joinRef: joinRef,
-                ref: ref,
-                topic: topic,
+                joinRef: inboundMessage.joinRef,
+                ref: inboundMessage.ref,
+                topic: inboundMessage.topic,
                 status: status,
-                payload: try encodeToData(jsonElement: response)
+                payload: try payloadEncoder.encode(any: response)
             )
-        } else if joinRef != nil || ref != nil {
+        } else if inboundMessage.joinRef != nil || inboundMessage.ref != nil {
             return Message.message(
-                joinRef: joinRef,
-                ref: ref,
-                topic: topic,
-                event: event,
-                payload: try encodeToData(jsonElement: payload)
+                joinRef: inboundMessage.joinRef,
+                ref: inboundMessage.ref,
+                topic: inboundMessage.topic,
+                event: inboundMessage.event,
+                payload: try payloadEncoder.encode(any: inboundMessage.payload)
             )
         } else {
             return Message.broadcast(
-                topic: topic,
-                event: event,
-                payload: try encodeToData(jsonElement: payload)
-                
+                topic: inboundMessage.topic,
+                event: inboundMessage.event,
+                payload: try payloadEncoder.encode(any: inboundMessage.payload)
             )
         }
     }
@@ -254,37 +258,5 @@ public class PhoenixSerializer: Serializer {
             event: event,
             payload: data
         )
-    }
-    
-    private func encodeToData(jsonElement: JsonElement) throws -> Data {
-        switch jsonElement {
-        case .string(let rawString):
-            return rawString.data(using: .utf8)!
-        default:
-            return try self.payloadEncoder.encode(jsonElement)
-        }
-    }
-    
-    private func convertToString(jsonElement: JsonElement) throws -> String {
-        switch jsonElement {
-        case .string(let rawString):
-            return rawString
-        default:
-            return try convertToString(encodable: jsonElement)
-        }
-    }
-    
-    private func convertToString(encodable: Encodable & Sendable) throws -> String {
-        let jsonData = try self.payloadEncoder.encode(encodable)
-        
-        guard
-            let jsonString = String(data: jsonData, encoding: .utf8)
-        else {
-            throw PhxError.serializerError(
-                reason: .stringFromDataFailed(string: "Expected json object to serialize to a String. \(encodable)")
-            )
-        }
-        
-        return jsonString
     }
 }

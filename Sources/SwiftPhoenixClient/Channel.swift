@@ -68,7 +68,7 @@ public class Channel {
     /// The params sent when joining the channel
     public var params: Payload {
         didSet {
-            let data = try! self.socket?.encoder.encode(params)
+            let data = try! self.socket?.encoder.encode(any: params)
             self.joinPush.payload = data!
         }
     }
@@ -156,7 +156,7 @@ public class Channel {
         
         
         // Setup Push Event to be sent when joining
-        let data = try! self.socket?.encoder.encode(params)
+        let data = try! self.socket?.encoder.encode(any: params)
         self.joinPush = Push(channel: self,
                              event: ChannelEvent.join,
                              payload: data!,
@@ -404,7 +404,7 @@ public class Channel {
                      payload: Payload,
                      timeout: TimeInterval = Defaults.timeoutInterval) -> Push {
         guard joinedOnce else { fatalError("Tried to push \(event) to \(self.topic) before joining. Use channel.join() before pushing events") }
-        guard let payload = try? self.socket?.encoder.encode(payload) else {
+        guard let payload = try? self.socket?.encoder.encode(any: payload) else {
             fatalError("Tried to push \(payload) to \(self.topic) but could not encode.")
         }
         
@@ -580,8 +580,9 @@ public class Channel {
                  ref: String = "",
                  joinRef: String? = nil,
                  status: String? = nil) {
+        
         let encoder = PhoenixPayloadEncoder()
-        let data = try? encoder.encode(payload)
+        let data = try? encoder.encode(any: payload)
         
         self.trigger(
             event: event,

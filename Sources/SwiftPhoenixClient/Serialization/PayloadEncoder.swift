@@ -13,19 +13,24 @@ import Foundation
 /// payloads into an outbound message.
 ///
 public protocol PayloadEncoder {
-    
+    func encode(any jsonObject: Any) throws -> Data
+
     func encode(_ encodable: Encodable) throws -> Data
     
-    func encode(_ dictionary: [String: Any]) throws -> Data
+//    func encode(_ dictionary: [String: Any]) throws -> Data
     
 }
 
 public class PhoenixPayloadEncoder: PayloadEncoder {
+    public func encode(any jsonObject: Any) throws -> Data {
+        try JSONSerialization.data(withJSONObject: jsonObject)
+    }
+    
     public func encode(_ encodable: any Encodable) throws -> Data {
         return try JSONEncoder().encode(encodable)
     }
     
-    public func encode(_ dictionary: [String : Any]) throws -> Data{
-        return try JSONSerialization.data(withJSONObject: dictionary)
-    }
+//    public func encode(_ dictionary: [String : Any]) throws -> Data{
+//        return try JSONSerialization.data(withJSONObject: dictionary)
+//    }
 }

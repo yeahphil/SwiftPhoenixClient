@@ -62,7 +62,7 @@ public class Defaults {
     
     /// Some messages require an empty payload. This represents an empty JSON
     /// payload conveted to JSON.
-    static let emptyPayload: Data = try! PhoenixPayloadEncoder().encode([:])
+    static let emptyPayload: Data = try! PhoenixPayloadEncoder().encode(any: [:])
 }
 
 

@@ -12,19 +12,14 @@
 ///
 ///     "[join_ref, ref, topic, event, payload]"
 ///
-struct OutboundMessage: Codable {
+struct OutboundMessage {
     let joinRef: String?
     let ref: String?
     let topic: String
     let event: String
-    let payload: JsonElement
+    let payload: [String: Any]
     
-    func encode(to encoder: any Encoder) throws {
-        var container = encoder.unkeyedContainer()
-        try container.encode(joinRef)
-        try container.encode(ref)
-        try container.encode(topic)
-        try container.encode(event)
-        try container.encode(payload)
+    func toJSONObject() -> [Any] {
+        [joinRef as Any, ref as Any, topic, event, payload]
     }
 }

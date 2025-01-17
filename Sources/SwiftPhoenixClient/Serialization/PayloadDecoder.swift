@@ -13,20 +13,21 @@ import Foundation
 /// or a [String: Any].
 ///
 public protocol PayloadDecoder {
+    /// Decode `Any` from data
+    /// The default implementation in `PhoenixPayloadDecoder` uses `JSONSerialization`.
+    func decode(from data: Data) throws -> Any
     
+    /// Decode a `Decodable` type from data
+    /// The default implementation in `PhoenixPayloadDecoder` uses `JSONDecoder`.
     func decode<T>(_ type: T.Type, from data: Data) throws -> T where T : Decodable
-    
-    func decode(_ data: Data) throws -> [String: Any]
-    
 }
 
 public class PhoenixPayloadDecoder: PayloadDecoder {
-    public func decode<T>(_ type: T.Type,
-                          from data: Data) throws -> T where T : Decodable {
-        return try JSONDecoder().decode(type, from: data)
+    public func decode(from data: Data) throws -> Any {
+        try JSONSerialization.jsonObject(with: data)
     }
     
-    public func decode(_ data: Data) throws -> [String : Any] {
-        return try JSONSerialization.jsonObject(with: data) as! [String: Any]
+    public func decode<T>(_ type: T.Type, from data: Data) throws -> T where T : Decodable {
+        return try JSONDecoder().decode(type, from: data)
     }
 }
