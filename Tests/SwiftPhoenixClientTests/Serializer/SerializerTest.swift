@@ -91,37 +91,45 @@ final class SerializerTest {
         #expect(message.payloadString == "{\"foo\":\"bar\"}")
     }
     
+    private struct NumberMessage: Codable {
+        let int: Int
+        let float: Float
+    }
+    
     @Test func test_decodeMessageWithNumbers() throws {
         let text = """
-        ["1","2", "topic","event",{"int":1,"float":1.1}]
+        ["1","2", "topic","event",{"int":1234,"float":1.1234}]
         """
         
         let message = try serializer.decode(text: text)
+        let result = try JSONDecoder().decode(NumberMessage.self, from: message.payload)
         
-        let jsonResult = message.payloadString
-        let excpetedResultsContainJsonResult = [
-            "{\"int\":1,\"float\":1.1}",
-            "{\"float\":1.1,\"int\":1}"
-        ].contains(jsonResult)
-        
-        #expect(excpetedResultsContainJsonResult)
+        #expect(result.int == 1234)
+        #expect(result.float == 1.1234)
+    }
+    
+    private struct ValuePayload: Codable {
+        let value: String
     }
     
     @Test func test_decodeMessageWithoutJsonPayload() throws {
         // NOTE: Since NSNumber can be a float or an int, `1.0` will convert to `1`
         // but should be able to map `1` back into a float property.
         let text = """
-        ["1","2", "topic","event","payload"]
+        ["1","2", "topic","event",{"value": "payload"}]
         """
         
         let message = try serializer.decode(text: text)
+        let result = try JSONDecoder().decode(ValuePayload.self, from: message.payload)
         
-        #expect(message.payloadString == "payload")
+        #expect(result.value == "payload")
     }
     
     @Test func test_decodeReply() throws {
+        // FIXME: the original message was [null,"2", "topic","phx_reply",{"response":"foo","status":"ok"}]
+        // This ends up throwing, unless JSONSerialization use sets `fragmentsAllowed` -- should that be done
         let text = """
-        [null,"2", "topic","phx_reply",{"response":"foo","status":"ok"}]
+        [null,"2", "topic","phx_reply",{"response":{"foo": "bar"},"status":"ok"}]
         """
         
         let reply = try serializer.decode(text: text)
@@ -130,7 +138,7 @@ final class SerializerTest {
         #expect(reply.topic == "topic")
         #expect(reply.event == "phx_reply")
         #expect(reply.status == "ok")
-        #expect(reply.payloadString == "foo")
+        #expect(reply.payloadString == #"{"foo":"bar"}"#)
     }
     
     @Test func test_decodeReplyWithBody() throws {
