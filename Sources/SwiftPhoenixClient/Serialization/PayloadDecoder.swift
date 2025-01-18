@@ -24,7 +24,7 @@ public protocol PayloadDecoder {
 
 public class PhoenixPayloadDecoder: PayloadDecoder {
     public func decode(from data: Data) throws -> Any {
-        try JSONSerialization.jsonObject(with: data)
+        try JSONSerialization.jsonObject(with: data, options: .fragmentsAllowed)
     }
     
     public func decode<T>(_ type: T.Type, from data: Data) throws -> T where T : Decodable {

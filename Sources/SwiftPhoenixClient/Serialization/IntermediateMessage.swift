@@ -20,7 +20,7 @@ struct IntermediateMessage {
     let ref: String?
     let topic: String
     let event: String
-    let payload: [String: Any]
+    let payload: Any
     
     init(joinRef: String?, ref: String?, topic: String, event: String, payload: [String: Any]) {
         self.joinRef = joinRef
@@ -53,15 +53,8 @@ struct IntermediateMessage {
                 )
             )
         }
-        guard let payload = array[4] as? [String: Any] else {
-            throw DecodingError.typeMismatch(
-                [String: Any].self,
-                DecodingError.Context(
-                    codingPath: [],
-                    debugDescription: "Expected [String: Any] for payload, found \(type(of: array[4])): \(array[4])"
-                )
-            )
-        }
+        
+        let payload = array[4]
         
         self.topic = topic
         self.event = event

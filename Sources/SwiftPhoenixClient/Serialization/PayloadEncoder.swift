@@ -20,7 +20,7 @@ public protocol PayloadEncoder {
 
 public class PhoenixPayloadEncoder: PayloadEncoder {
     public func encode(any jsonObject: Any) throws -> Data {
-        try JSONSerialization.data(withJSONObject: jsonObject)
+        try JSONSerialization.data(withJSONObject: jsonObject, options: .fragmentsAllowed)
     }
     
     public func encode(_ encodable: any Encodable) throws -> Data {

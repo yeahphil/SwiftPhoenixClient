@@ -135,8 +135,9 @@ public class PhoenixSerializer: Serializer {
         // Note that `payload` can be any primitive or another object
         if inboundMessage.event == ChannelEvent.reply {
             guard
-                let response = inboundMessage.payload["response"],
-                let status = inboundMessage.payload["status"] as? String
+                let payload = inboundMessage.payload as? [String: Any],
+                let response = payload["response"],
+                let status = payload["status"] as? String
             else {
                 throw PhxError.serializerError(reason: .invalidReplyStructure(string: text))
             }
