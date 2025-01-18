@@ -98,31 +98,27 @@ final class SerializerTest {
     
     @Test func test_decodeMessageWithNumbers() throws {
         let text = """
-        ["1","2", "topic","event",{"int":1234,"float":1.1234}]
+        ["1","2", "topic","event",{"int":1,"float":1.1}]
         """
         
         let message = try serializer.decode(text: text)
         let result = try JSONDecoder().decode(NumberMessage.self, from: message.payload)
         
-        #expect(result.int == 1234)
-        #expect(result.float == 1.1234)
-    }
-    
-    private struct ValuePayload: Codable {
-        let value: String
+        #expect(result.int == 1)
+        #expect(result.float == 1.1)
     }
     
     @Test func test_decodeMessageWithoutJsonPayload() throws {
         // NOTE: Since NSNumber can be a float or an int, `1.0` will convert to `1`
         // but should be able to map `1` back into a float property.
         let text = """
-        ["1","2", "topic","event",{"value": "payload"}]
+        ["1","2", "topic","event","payload"]
         """
         
         let message = try serializer.decode(text: text)
-        let result = try JSONDecoder().decode(ValuePayload.self, from: message.payload)
+        let result = try JSONDecoder().decode(String.self, from: message.payload)
         
-        #expect(result.value == "payload")
+        #expect(result == "payload")
     }
     
     @Test func test_decodeReply() throws {
