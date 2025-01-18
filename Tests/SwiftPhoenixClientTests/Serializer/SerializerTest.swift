@@ -122,10 +122,8 @@ final class SerializerTest {
     }
     
     @Test func test_decodeReply() throws {
-        // FIXME: the original message was [null,"2", "topic","phx_reply",{"response":"foo","status":"ok"}]
-        // This ends up throwing, unless JSONSerialization use sets `fragmentsAllowed` -- should that be done
         let text = """
-        [null,"2", "topic","phx_reply",{"response":{"foo": "bar"},"status":"ok"}]
+        [null,"2", "topic","phx_reply",{"response":"foo","status":"ok"}]
         """
         
         let reply = try serializer.decode(text: text)
@@ -134,7 +132,7 @@ final class SerializerTest {
         #expect(reply.topic == "topic")
         #expect(reply.event == "phx_reply")
         #expect(reply.status == "ok")
-        #expect(reply.payloadString == #"{"foo":"bar"}"#)
+        #expect(reply.payloadString == "\"foo\"")
     }
     
     @Test func test_decodeReplyWithBody() throws {
