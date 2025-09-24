@@ -345,24 +345,10 @@ public class Channel {
     public func push(_ event: String,
                      payload: Payload,
                      timeout: TimeInterval = Defaults.timeoutInterval) throws -> Push {
-        guard joinedOnce else {
-            throw ChannelError.pushTriedBeforeJoin(topic: self.topic, event: event)
-        }
-        
-        let pushEvent = Push(channel: self,
-                             event: event,
-                             payload: .json(payload),
-                             timeout: timeout)
-        if canPush {
-            pushEvent.send()
-        } else {
-            pushEvent.startTimeout()
-            pushBuffer.append(pushEvent)
-        }
-        
-        return pushEvent
+        try push(event, outgoingPayload: .json(payload), timeout: timeout)
     }
     
+   
     /// Pushes a binary payload to the Channel
     ///
     /// Example:
@@ -377,13 +363,31 @@ public class Channel {
     public func binaryPush(_ event: String,
                            payload: Data,
                            timeout: TimeInterval = Defaults.timeoutInterval) throws -> Push {
+        try push(event, outgoingPayload: .binary(payload), timeout: timeout)
+    }
+    
+    /// Push any outgoing payload ('json', binary or encodable) to the Channel
+    ///
+    /// Example:
+    ///
+    ///     channel
+    ///         .push("event", outgoingPayload: .encodable(someEncodableType))
+    ///         .receive("ok") { _ in { print("message sent") }
+    ///
+    /// - parameter event: Event to push
+    /// - parameter outgoingPayload: OutgoingPayload to push
+    /// - parameter timeout: Optional timeout
+    @discardableResult
+    public func push(_ event: String,
+                     outgoingPayload: OutgoingPayload,
+                     timeout: TimeInterval = Defaults.timeoutInterval) throws -> Push {
         guard joinedOnce else {
             throw ChannelError.pushTriedBeforeJoin(topic: self.topic, event: event)
         }
         
         let pushEvent = Push(channel: self,
                              event: event,
-                             payload: .binary(payload),
+                             payload: outgoingPayload,
                              timeout: timeout)
         if canPush {
             pushEvent.send()
