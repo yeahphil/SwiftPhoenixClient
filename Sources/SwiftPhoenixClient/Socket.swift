@@ -82,7 +82,7 @@ public class Socket: TransportDelegate {
     public var vsn: String = Defaults.vsn
     
     /// Serializer used to encode/decode between the clienet and the server.
-    public var serializer: TransportSerializer = PhoenixTransportSerializer()
+    public lazy var serializer: TransportSerializer = PhoenixTransportSerializer(payloadEncoder: encoder, payloadDecoder: decoder)
     
     /// Customize how payloads are encoded before being sent to the server
     public var encoder: PayloadEncoder = PhoenixPayloadEncoder()
