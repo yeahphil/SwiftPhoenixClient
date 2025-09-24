@@ -50,7 +50,7 @@ public protocol TransportSerializer {
 /// the JS client behavior. You can implement a custom `TransportSerializer` and pass set it on the
 /// `Socket`.
 ///
-public class PhoenixTransportSerializer: TransportSerializer {
+public struct PhoenixTransportSerializer: TransportSerializer {
     
     private let HEADER_LENGTH: Int = 1
     private let META_LENGTH: Int = 4
